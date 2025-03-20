@@ -9,7 +9,7 @@ int main() {
     rosa.diffuse = Color(1, 0.7, 0.75);
     
     Plane plano(Vector3(0, -1, 0), Vector3(0, 1, 0));
-    plano.material = &rosa;
+    plano.material = &branco;
     
     Sphere esfera(Vector3(0, 1, 0), 2);
     esfera.material = &branco;
@@ -19,9 +19,13 @@ int main() {
         target(6, 2, 0);
 
     Camera cam(cam_pos, target);
+    cam.lights.emplace_back(Vector3(0, 8, -3));
+    cam.lights.emplace_back(Vector3(0, 8, 3));
+    cam.lights[0].color = Color(1, 0.2, 0.1);
+    cam.lights[1].color = Color(0.1, 0.2, 1);
+
     //cam.light_sources.emplace_back(0, 5, 0);
     TriangleMesh mesh("inputs/icosahedron.obj");
-
     
     Vector3 a(0, 1, 1);
     Vector3 b(1, 2, 2);

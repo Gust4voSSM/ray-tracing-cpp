@@ -19,6 +19,18 @@ const Color
     BLACK = Color(0, 0, 0),
     WHITE = Color(1, 1, 1);
 
+inline Color operator *(Color a, Color b) {
+    return Color ( a.R * b.R,
+                   a.G * b.G,
+                   a.B * b.B );
+}
+
+inline Color operator +(Color a, Color b) {
+    return Color ( a.R + b.R,
+                    a.G + b.G,
+                    a.B + b.B );
+}
+
 Color operator *(Color c, double k) {
     return Color(c.R*k, c.G*k, c.B*k);
 }

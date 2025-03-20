@@ -24,6 +24,16 @@ class Camera {
         Vector3 position;
         Vector3 target;
         Vector3 global_up;
+
+        struct Light {
+            Vector3 position;
+            Color color = WHITE;
+            Light(Vector3 p): position {p} {}
+            Light() {}
+        };
+
+        std::vector<Light> lights;
+
         double screen_distance;
         int screen_height;
         int screen_width;
@@ -56,19 +66,28 @@ class Camera {
         }
         Color get_color(std::vector<Object*> objects, Vector3 p, Vector3 v) {
             double min_dist = INFINITY;
+            Object* hit_obj;
             Vector3 normal;
-            Color color;
+            Color color = BLACK;
             for (Object* o : objects) {
                 Object::Intersection hit = o->raycast(p, v);
                 double dist = hit.distance;
                 if (dist < min_dist) {
                     min_dist = dist;
-                    color = o->material->diffuse;
-                    normal = hit.object->get_normal(p + v*dist);
+                    hit_obj = hit.object;
                 }
             }
-            double cos = v.dot(-normal);
-            return color * cos;
+            if (min_dist == INFINITY) return color;
+            v = v.normalized();
+            Vector3 hit_point = p + v*min_dist;
+            normal = hit_obj->get_normal(hit_point);
+            Object::Material *material = hit_obj->material;
+            for (auto l : lights) {
+                Vector3 light_direction = (l.position - hit_point).normalized();
+                color += (l.color * material->diffuse) * (light_direction).dot(normal);
+                //color += (l.color * material->diffuse) * ().dot(v);
+            }
+            return color;
         }
 };
 #endif
