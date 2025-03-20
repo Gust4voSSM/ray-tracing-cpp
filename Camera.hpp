@@ -48,20 +48,23 @@ class Camera {
             std::cout << "P3\n" << screen_width << " " << screen_height << "\n255\n";
             for (int i = screen_height-1; i >= 0; i--) {
                 for (int j = 0; j < screen_width; j++) {
-                    //std::cout << "i = " << i << ", j = " << j <<"\n";
                     Vector3 ray_direction = (screen_to_world(i, j) - position).normalized();
-                    double min_dist = INFINITY;
-                    Color pixel_color;
-                    for (Object* o : objects) {
-                        double dist = o->raycast(position, ray_direction).distance;
-                        if (dist < min_dist) {
-                            min_dist = dist;
-                            pixel_color = o->material->diffuse;
-                        }
-                    }
+                    Color pixel_color = get_color(objects, position, ray_direction);
                     std::cout << pixel_color * 255.99 << "\n";
                 }
             }
+        }
+        Color get_color(std::vector<Object*> objects, Vector3 p, Vector3 v) {
+            double min_dist = INFINITY;
+            Color color;
+            for (Object* o : objects) {
+                double dist = o->raycast(p, v).distance;
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    color = o->material->diffuse;
+                }
+            }
+            return color;
         }
 };
 #endif
