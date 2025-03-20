@@ -15,7 +15,7 @@ class Camera {
             position {position}, target {target},
             screen_height {900}, screen_width {1600},
             global_up {Vector3(0, 1, 0)},
-            screen_distance {2}
+            screen_distance {1}
             {
                 forward = (target - position).normalized();
                 right = global_up.cross(forward);
@@ -33,6 +33,8 @@ class Camera {
         };
 
         std::vector<Light> lights;
+        Color ambient_light = WHITE;
+        Color bacground_color = BLACK;
 
         double screen_distance;
         int screen_height;
@@ -84,10 +86,25 @@ class Camera {
             Object::Material *material = hit_obj->material;
             for (auto l : lights) {
                 Vector3 light_direction = (l.position - hit_point).normalized();
-                color += (l.color * material->diffuse) * (light_direction).dot(normal);
-                //color += (l.color * material->diffuse) * ().dot(v);
+                bool blocked = false;
+                for (Object* o : objects) {
+                    double distance = o->raycast(hit_point, light_direction).distance;
+                    if(distance != INFINITY && distance > epsilon) {
+                        blocked = true;
+                        break;
+                    }
+                }
+                if (blocked) continue;
+                double cos = (light_direction).dot(normal);
+                if (cos < 0) cos = 0;
+                color += (l.color * material->diffuse) * cos; // Difusa
+                Vector3 r = (2 * cos * normal) - light_direction;
+                double cos2 = r.dot(v);
+                if (cos2 < 0) cos2 = 0;
+                cos2 = pow(cos2, material->ns);
+                color += (l.color * material->specular) * cos2; //Especular
             }
-            return color;
-        }
+            return color + ambient_light * material->ambient;
+        } 
 };
 #endif

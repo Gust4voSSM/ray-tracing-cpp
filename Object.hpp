@@ -5,7 +5,7 @@
 #include <math.h>
 #include <vector>
 
-const double epsilon = 1.0E-20;
+const double epsilon = 1.0E-8;
 
 class Object {
 
@@ -46,7 +46,7 @@ Object::Material* Object::default_material = new Object::Material();
 class Plane: public Object {
 
 public:
-    Plane(Vector3 point, Vector3 normal): point {point}, normal {normal} {}
+    Plane(Vector3 point, Vector3 normal): point {point}, normal {normal.normalized()} {}
     Vector3 normal;
     Vector3 point;
 
@@ -70,7 +70,7 @@ class Sphere: public Object {
 public:
     Sphere() {}
     Sphere(Vector3 center, double radius): center {center}, radius {radius} {}
-    Vector3 get_normal(const Vector3 &p) { return p - center; }
+    Vector3 get_normal(const Vector3 &p) { return (p - center).normalized(); }
     Intersection raycast(Vector3 p, Vector3 v) {
         Vector3 d = center - p;
         
@@ -89,6 +89,8 @@ public:
 
             d_1 = proj_lenght - half_chord,
             d_2 = proj_lenght + half_chord;
+
+        //std::cerr << "Interseção!\n";
 
         return  (d_1 > 0)? Intersection(d_1, this) :
                 (d_2 > 0)? Intersection(d_2, this) : INFINITY;
