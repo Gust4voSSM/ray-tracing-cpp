@@ -1,0 +1,28 @@
+# Arquivo de materiais: exemplo com Red, Green e Purple
+
+newmtl Red
+Kd 1.0 0.0 0.0    # Difuso: vermelho
+Ks 0.2 0.2 0.2    # Specular
+Ke 0.0 0.0 0.0    # Emissivo
+Ka 0.1 0.1 0.1    # Ambiente
+Ns 10.0           # Brilho
+Ni 1.0            # Índice de refração
+d 1.0             # Opacidade
+
+newmtl Green
+Kd 0.0 1.0 0.0    # Difuso: verde
+Ks 0.2 0.2 0.2
+Ke 0.0 0.0 0.0
+Ka 0.1 0.1 0.1
+Ns 10.0
+Ni 1.0
+d 1.0
+
+newmtl Purple
+Kd 0.5 0.0 0.5    # Difuso: roxo/púrpura
+Ks 0.2 0.2 0.2
+Ke 0.0 0.0 0.0
+Ka 0.1 0.1 0.1
+Ns 10.0
+Ni 1.0
+d 1.0
