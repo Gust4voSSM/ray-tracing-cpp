@@ -12,23 +12,25 @@ class Object {
 public:
     Object() : material(default_material) {}
     virtual ~Object() {}
-    virtual double distance(Vector3 p, Vector3 v) = 0;
-
+    
     struct Material {
         Color  diffuse  = Color (1.0, 1.0, 1.0),
-               specular = Color (0.0, 0.0, 0.0),
-               ambient  = Color (0.1, 0.1, 0.1),
-               emissive = Color (0.0, 0.0, 0.0);
+        specular = Color (0.0, 0.0, 0.0),
+        ambient  = Color (0.1, 0.1, 0.1),
+        emissive = Color (0.0, 0.0, 0.0);
         double opacity  = 1,
-               ni       = 0.5,
-               ns       = 0;
+        ni       = 0.5,
+        ns       = 0;
     } *material;
-
+    
     struct Intersection {
-        Vector3 point;
+        double distance;
         Object *object;
+        Intersection(double d): distance {d},  object {nullptr} {};
+        Intersection(double d, Object *o): distance {d}, object {o} {};
     };
-
+    virtual Intersection raycast(Vector3 p, Vector3 v) = 0;
+    
     static Material *default_material;
 
     //void rotate(Vector3 v) { rotate(v.x(), v.y(), v.z()); }
@@ -47,7 +49,7 @@ public:
     Vector3 normal;
     Vector3 point;
 
-    double distance(Vector3 p, Vector3 v) {
+    Intersection raycast(Vector3 p, Vector3 v) {
 
         double sin = normal.dot(v);
 
@@ -57,7 +59,7 @@ public:
         
         double distance = (point - p).dot(normal) / sin;
 
-        return (distance >= 0)? distance : INFINITY;
+        return (distance >= 0)? Intersection(distance, this) : INFINITY;
     }
 };
 
@@ -66,7 +68,7 @@ class Sphere: public Object {
 public:
     Sphere() {}
     Sphere(Vector3 center, double radius): center {center}, radius {radius} {}
-    double distance(Vector3 p, Vector3 v) {
+    Intersection raycast(Vector3 p, Vector3 v) {
         Vector3 d = center - p;
         
         const double proj_lenght = d.dot(v);
@@ -85,7 +87,8 @@ public:
             d_1 = proj_lenght - half_chord,
             d_2 = proj_lenght + half_chord;
 
-        return (d_1 > 0)? d_1 : (d_2 > 0)? d_2 : INFINITY;
+        return  (d_1 > 0)? Intersection(d_1, this) :
+                (d_2 > 0)? Intersection(d_2, this) : INFINITY;
 
     }
     Vector3 center;
@@ -100,8 +103,8 @@ class Triangle: public Object {
             v[2] = v2;
             normal = (*v[1] - *v[0]).cross(*v[2] - *v[0]).normalized();
         }
-        double distance(Vector3 origin, Vector3 direction) {
-            double dist = Plane(*v[0], normal).distance(origin, direction);
+        Intersection raycast(Vector3 origin, Vector3 direction) {
+            double dist = Plane(*v[0], normal).raycast(origin, direction).distance;
             if (dist < 0) return INFINITY;
             Vector3 P = origin + (direction * dist);
             const Vector3 &A = *v[0], &B = *v[1], &C = *v[2];
@@ -123,7 +126,7 @@ class Triangle: public Object {
             c = 1 - b - a;
 
 
-            if (a >= 0 && b >= 0 && c > 0 && a < 1 && b < 1 && c < 1) return dist;
+            if (a >= 0 && b >= 0 && c > 0 && a < 1 && b < 1 && c < 1) return Intersection(dist, this);
             return INFINITY;
         }
         Vector3* v[3];

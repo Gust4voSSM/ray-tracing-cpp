@@ -53,7 +53,7 @@ class Camera {
                     double min_dist = INFINITY;
                     Color pixel_color;
                     for (Object* o : objects) {
-                        double dist = o->distance(position, ray_direction);
+                        double dist = o->raycast(position, ray_direction).distance;
                         if (dist < min_dist) {
                             min_dist = dist;
                             pixel_color = o->material->diffuse;
@@ -62,7 +62,6 @@ class Camera {
                     std::cout << pixel_color * 255.99 << "\n";
                 }
             }
-            
         }
 };
 #endif

@@ -111,16 +111,16 @@ class TriangleMesh: public Object {
         }
 
 
-        double distance(Vector3 p, Vector3 v) {
+        Intersection raycast(Vector3 p, Vector3 v) {
             double min_dist = INFINITY;
             for (Triangle t : triangles) {
-                double dist = t.distance(p, v);
+                double dist = t.raycast(p, v).distance;
                 if (dist < min_dist) {
                     this->material = t.material;
                     min_dist = dist;
                 }
             }
-            return min_dist;
+            return Intersection(min_dist, this);
         }
 };
 
