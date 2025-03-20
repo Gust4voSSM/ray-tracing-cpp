@@ -56,15 +56,19 @@ class Camera {
         }
         Color get_color(std::vector<Object*> objects, Vector3 p, Vector3 v) {
             double min_dist = INFINITY;
+            Vector3 normal;
             Color color;
             for (Object* o : objects) {
-                double dist = o->raycast(p, v).distance;
+                Object::Intersection hit = o->raycast(p, v);
+                double dist = hit.distance;
                 if (dist < min_dist) {
                     min_dist = dist;
                     color = o->material->diffuse;
+                    normal = hit.object->get_normal(p + v*dist);
                 }
             }
-            return color;
+            double cos = v.dot(-normal);
+            return color * cos;
         }
 };
 #endif

@@ -110,17 +110,23 @@ class TriangleMesh: public Object {
             inFile.close();
         }
 
-
+        Vector3 get_normal(const Vector3 &p) {
+            std::cerr << "Error: Normal for mesh not implemented\n";
+            return Vector3();
+        }
         Intersection raycast(Vector3 p, Vector3 v) {
             double min_dist = INFINITY;
-            for (Triangle t : triangles) {
-                double dist = t.raycast(p, v).distance;
+            Object* hit;
+            for (Triangle &t : triangles) {
+                Intersection try_hit = t.raycast(p, v);
+                double dist = try_hit.distance;
                 if (dist < min_dist) {
                     this->material = t.material;
                     min_dist = dist;
+                    hit = try_hit.object;
                 }
             }
-            return Intersection(min_dist, this);
+            return Intersection(min_dist, hit);
         }
 };
 

@@ -19,6 +19,10 @@ const Color
     BLACK = Color(0, 0, 0),
     WHITE = Color(1, 1, 1);
 
+Color operator *(Color c, double k) {
+    return Color(c.R*k, c.G*k, c.B*k);
+}
+
 #undef R
 #undef G
 #undef B

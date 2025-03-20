@@ -30,6 +30,7 @@ public:
         Intersection(double d, Object *o): distance {d}, object {o} {};
     };
     virtual Intersection raycast(Vector3 p, Vector3 v) = 0;
+    virtual Vector3 get_normal(const Vector3 &p) = 0;
     
     static Material *default_material;
 
@@ -49,6 +50,7 @@ public:
     Vector3 normal;
     Vector3 point;
 
+    Vector3 get_normal(const Vector3 &p) { return normal; }
     Intersection raycast(Vector3 p, Vector3 v) {
 
         double sin = normal.dot(v);
@@ -68,6 +70,7 @@ class Sphere: public Object {
 public:
     Sphere() {}
     Sphere(Vector3 center, double radius): center {center}, radius {radius} {}
+    Vector3 get_normal(const Vector3 &p) { return p - center; }
     Intersection raycast(Vector3 p, Vector3 v) {
         Vector3 d = center - p;
         
@@ -103,6 +106,7 @@ class Triangle: public Object {
             v[2] = v2;
             normal = (*v[1] - *v[0]).cross(*v[2] - *v[0]).normalized();
         }
+        Vector3 get_normal(const Vector3 &p) { return normal; }
         Intersection raycast(Vector3 origin, Vector3 direction) {
             double dist = Plane(*v[0], normal).raycast(origin, direction).distance;
             if (dist < 0) return INFINITY;
