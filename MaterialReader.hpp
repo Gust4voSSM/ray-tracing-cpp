@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 #include <map>
-#include "Object.hpp"   // Presume que aqui está definida a struct Material dentro de Object
+#include "Object.hpp"
 #include "Color.hpp"
 
 class MaterialReader {

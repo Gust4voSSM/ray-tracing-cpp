@@ -5,7 +5,7 @@
 #include <math.h>
 #include <vector>
 
-const double epsilon = 1.0E-8;
+const double epsilon = 1.0E-6;
 
 class Object {
 
@@ -20,7 +20,7 @@ public:
         emissive = Color (0.0, 0.0, 0.0);
         double opacity  = 1,
         ni       = 0.5,
-        ns       = 0;
+        ns       = 10;
     } *material;
     
     struct Intersection {

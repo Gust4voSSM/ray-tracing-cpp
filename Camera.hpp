@@ -29,6 +29,7 @@ class Camera {
             Vector3 position;
             Color color = WHITE;
             Light(Vector3 p): position {p} {}
+            Light(double x, double y, double z): position {Vector3(x, y, z)} {}
             Light() {}
         };
 
@@ -88,21 +89,28 @@ class Camera {
                 Vector3 light_direction = (l.position - hit_point).normalized();
                 bool blocked = false;
                 for (Object* o : objects) {
-                    double distance = o->raycast(hit_point, light_direction).distance;
+                    if (hit_obj == o) continue;
+                    Object::Intersection obst = o->raycast(hit_point, light_direction);
+                    double distance = obst.distance;
                     if(distance != INFINITY && distance > epsilon) {
                         blocked = true;
                         break;
                     }
                 }
                 if (blocked) continue;
-                double cos = (light_direction).dot(normal);
-                if (cos < 0) cos = 0;
-                color += (l.color * material->diffuse) * cos; // Difusa
-                Vector3 r = (2 * cos * normal) - light_direction;
-                double cos2 = r.dot(v);
-                if (cos2 < 0) cos2 = 0;
-                cos2 = pow(cos2, material->ns);
-                color += (l.color * material->specular) * cos2; //Especular
+
+                double cos_theta = (light_direction).dot(normal);
+                if (cos_theta <= 0) cos_theta = 0;
+                // Difusa
+                else color += (l.color * material->diffuse) * cos_theta;
+
+                Vector3 r = (2 * normal * cos_theta) - light_direction;
+                double cos_alpha = r.dot(-v);
+                if (cos_alpha <= 0) continue;
+                
+                cos_alpha = pow(cos_alpha, material->ns);
+                //Especular
+                color += (l.color * material->specular) * cos_alpha;
             }
             return color + ambient_light * material->ambient;
         } 
