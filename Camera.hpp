@@ -4,6 +4,8 @@
 #include "Object.hpp"
 #include <cassert>
 #include <vector>
+#include <thread>
+#include <iostream>
 
 class Camera {
     private:
@@ -57,19 +59,54 @@ class Camera {
 
             return screen_center + dh + dw;
         }
-        void draw(std::vector<Object*> objects) {
-            std::cout << "P6\n" << screen_width << " " << screen_height << "\n255\n";
-            for (int i = screen_height-1; i >= 0; i--) {
-                for (int j = 0; j < screen_width; j++) {
-                    Vector3 ray_direction = (screen_to_world(i, j) - position).normalized();
-                    Color pixel_color = get_color(objects, position, ray_direction, 2);
-                    unsigned char
-                        r = static_cast<unsigned char>(std::min(255.0, pixel_color.r() * 255.99)),
-                        g = static_cast<unsigned char>(std::min(255.0, pixel_color.g() * 255.99)),
-                        b = static_cast<unsigned char>(std::min(255.0, pixel_color.b() * 255.99));
-                    std::cout << r << g << b;
+        void draw(std::vector<Object*> objects, int num_workers) {
+            // Cria um buffer para armazenar os pixels (RGB para cada pixel)
+            std::vector<unsigned char> pixels(screen_width * screen_height * 3, 0);
+        
+            // Função lambda que processa um intervalo de linhas
+            auto worker = [&](int start_row, int end_row) {
+                for (int i = start_row; i < end_row; i++) {
+                    for (int j = 0; j < screen_width; j++) {
+                        Vector3 ray_direction = (screen_to_world(i, j) - position).normalized();
+                        Color pixel_color = get_color(objects, position, ray_direction, 2);
+                        unsigned char r = static_cast<unsigned char>(std::min(255.0, pixel_color.r() * 255.99));
+                        unsigned char g = static_cast<unsigned char>(std::min(255.0, pixel_color.g() * 255.99));
+                        unsigned char b = static_cast<unsigned char>(std::min(255.0, pixel_color.b() * 255.99));
+                        
+                        // Note que o loop original imprime as linhas de baixo para cima.
+                        // Portanto, calculamos o índice da linha no buffer invertendo a ordem:
+                        int row_index = screen_height - 1 - i;
+                        int idx = (row_index * screen_width + j) * 3;
+                        pixels[idx]   = r;
+                        pixels[idx+1] = g;
+                        pixels[idx+2] = b;
+                    }
                 }
+            };
+        
+            // Cria e distribui as threads pelos blocos de linhas
+            std::vector<std::thread> threads;
+            int rows_per_worker = screen_height / num_workers;
+            int extra_rows = screen_height % num_workers;
+            int current_row = 0;
+            for (int w = 0; w < num_workers; w++) {
+                int start = current_row;
+                // Distribui as linhas restantes entre os primeiros workers
+                int rows = rows_per_worker + (w < extra_rows ? 1 : 0);
+                int end = start + rows;
+                threads.push_back(std::thread(worker, start, end));
+                current_row = end;
             }
+            
+            // Aguarda todas as threads terminarem
+            for (auto& t : threads) {
+                t.join();
+            }
+            
+            // Imprime o cabeçalho do arquivo PPM
+            std::cout << "P6\n" << screen_width << " " << screen_height << "\n255\n";
+            // Imprime os dados dos pixels na ordem correta
+            std::cout.write(reinterpret_cast<char*>(pixels.data()), pixels.size());
         }
         Color get_color(std::vector<Object*> objects, Vector3 p, Vector3 v, int recursions) {
             double min_dist = INFINITY;

@@ -128,15 +128,16 @@ class TriangleMesh: public Object {
             }
             return Intersection(min_dist, hit);
         }
+        std::string to_string() {
+            std::string r =  "Mesh:\n\tVertices:\n\t\t";
+            for (Vector3 &v : vertices) {
+                auto x = 
+                r += "\t\t(" + std::to_string(v.x()) +
+                        ", " + std::to_string(v.y()) +
+                        ", " + std::to_string(v.z()) + ")\n";
+            }
+            return r;
+        }
 };
-
-inline std::ostream& operator<<(std::ostream &os, const TriangleMesh &m) {
-    os << "Mesh:\n\tVertices:\n";
-    for (Vector3 v : m.vertices) {
-        os << "\t\t" << v << "\n";
-    }
-    os << "Numero de faces: " << m.triangles.size() << "\n";
-    return os;
-}
 
 #endif

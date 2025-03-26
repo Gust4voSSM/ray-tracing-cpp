@@ -37,7 +37,7 @@ int main() {
     cam.ambient_light = Color(0.1, 0.1, 0.4);
 
     //cam.light_sources.emplace_back(0, 5, 0);
-    //TriangleMesh mesh("inputs/icosahedron.obj");
+    TriangleMesh mesh("inputs/icosahedron.obj");
     
     // Vector3 a(0, 1, 1);
     // Vector3 b(1, 2, 2);
@@ -47,8 +47,8 @@ int main() {
     // tri.material = &branco;
 
     objs.push_back(&plano);
-    objs.push_back(&esfera);
+    objs.push_back(&mesh);
     //cout << mesh;
-    cam.draw(objs);
+    cam.draw(objs, 8);
 }
 
