@@ -58,12 +58,16 @@ class Camera {
             return screen_center + dh + dw;
         }
         void draw(std::vector<Object*> objects) {
-            std::cout << "P3\n" << screen_width << " " << screen_height << "\n255\n";
+            std::cout << "P6\n" << screen_width << " " << screen_height << "\n255\n";
             for (int i = screen_height-1; i >= 0; i--) {
                 for (int j = 0; j < screen_width; j++) {
                     Vector3 ray_direction = (screen_to_world(i, j) - position).normalized();
                     Color pixel_color = get_color(objects, position, ray_direction, 2);
-                    std::cout << pixel_color * 255.99 << "\n";
+                    unsigned char
+                        r = static_cast<unsigned char>(std::min(255.0, pixel_color.r() * 255.99)),
+                        g = static_cast<unsigned char>(std::min(255.0, pixel_color.g() * 255.99)),
+                        b = static_cast<unsigned char>(std::min(255.0, pixel_color.b() * 255.99));
+                    std::cout << r << g << b;
                 }
             }
         }
