@@ -62,12 +62,12 @@ class Camera {
             for (int i = screen_height-1; i >= 0; i--) {
                 for (int j = 0; j < screen_width; j++) {
                     Vector3 ray_direction = (screen_to_world(i, j) - position).normalized();
-                    Color pixel_color = get_color(objects, position, ray_direction);
+                    Color pixel_color = get_color(objects, position, ray_direction, 2);
                     std::cout << pixel_color * 255.99 << "\n";
                 }
             }
         }
-        Color get_color(std::vector<Object*> objects, Vector3 p, Vector3 v) {
+        Color get_color(std::vector<Object*> objects, Vector3 p, Vector3 v, int recursions) {
             double min_dist = INFINITY;
             Object* hit_obj;
             Vector3 normal;
@@ -75,7 +75,7 @@ class Camera {
             for (Object* o : objects) {
                 Object::Intersection hit = o->raycast(p, v);
                 double dist = hit.distance;
-                if (dist < min_dist) {
+                if (dist < min_dist && dist > epsilon) {
                     min_dist = dist;
                     hit_obj = hit.object;
                 }
@@ -85,6 +85,10 @@ class Camera {
             Vector3 hit_point = p + v*min_dist;
             normal = hit_obj->get_normal(hit_point);
             Object::Material *material = hit_obj->material;
+
+            // Como a reflexão é ortogonal, preferi calcular a reflexão da visão em n e então o cosseno com a direção da luz
+            Vector3 reflected = 2 * normal * normal.dot(-v) +v;
+
             for (auto l : lights) {
                 Vector3 light_direction = (l.position - hit_point).normalized();
                 bool blocked = false;
@@ -104,15 +108,21 @@ class Camera {
                 // Difusa
                 else color += (l.color * material->diffuse) * cos_theta;
 
-                Vector3 r = (2 * normal * cos_theta) - light_direction;
-                double cos_alpha = r.dot(-v);
+                double cos_alpha = reflected.dot(light_direction);
                 if (cos_alpha <= 0) continue;
                 
                 cos_alpha = pow(cos_alpha, material->ns);
                 //Especular
                 color += (l.color * material->specular) * cos_alpha;
             }
-            return color + ambient_light * material->ambient;
+            color += ambient_light * material->ambient;
+            if (!(material->specular == BLACK) && recursions > 0) {
+                //std::clog << normal <<"\n";
+                hit_point += (normal * epsilon);
+                color += material->specular * get_color(objects, hit_point, reflected, recursions-1);
+            }
+            return color;
         } 
 };
+
 #endif

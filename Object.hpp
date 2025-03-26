@@ -4,6 +4,7 @@
 #include "Color.hpp"
 #include <math.h>
 #include <vector>
+#include <string>
 
 const double epsilon = 1.0E-6;
 
@@ -31,6 +32,7 @@ public:
     };
     virtual Intersection raycast(Vector3 p, Vector3 v) = 0;
     virtual Vector3 get_normal(const Vector3 &p) = 0;
+    virtual std::string to_string() = 0;
     
     static Material *default_material;
 
@@ -49,6 +51,9 @@ public:
     Plane(Vector3 point, Vector3 normal): point {point}, normal {normal.normalized()} {}
     Vector3 normal;
     Vector3 point;
+    std::string to_string() {
+        return "Plano de normal (" + std::to_string(normal.x()) +", "+ std::to_string(normal.y()) +", "+ std::to_string(normal.z())+")";
+        }
 
     Vector3 get_normal(const Vector3 &p) { return normal; }
     Intersection raycast(Vector3 p, Vector3 v) {
@@ -71,6 +76,9 @@ public:
     Sphere() {}
     Sphere(Vector3 center, double radius): center {center}, radius {radius} {}
     Vector3 get_normal(const Vector3 &p) { return (p - center).normalized(); }
+    std::string to_string() {
+        return "Esfera de centro (" + std::to_string(center.x()) +", "+ std::to_string(center.y()) +", "+ std::to_string(center.z())+")";
+        }
     Intersection raycast(Vector3 p, Vector3 v) {
         Vector3 d = center - p;
         
@@ -137,5 +145,11 @@ class Triangle: public Object {
         }
         Vector3* v[3];
         Vector3 normal;
+        std::string to_string() {return "Triangle"; }
+
 };
+inline std::ostream& operator<<(std::ostream &os, Object &o) {
+    os << o.to_string();
+    return os;
+}
 #endif
