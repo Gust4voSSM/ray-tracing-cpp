@@ -62,7 +62,7 @@ class Camera {
             for (int i = screen_height-1; i >= 0; i--) {
                 for (int j = 0; j < screen_width; j++) {
                     Vector3 ray_direction = (screen_to_world(i, j) - position).normalized();
-                    Color pixel_color = get_color(objects, position, ray_direction, 2);
+                    Color pixel_color = get_color(objects, position, ray_direction, 5);
                     unsigned char
                         r = static_cast<unsigned char>(std::min(255.0, pixel_color.r() * 255.99)),
                         g = static_cast<unsigned char>(std::min(255.0, pixel_color.g() * 255.99)),
@@ -91,7 +91,7 @@ class Camera {
             Object::Material *material = hit_obj->material;
 
             // Como a reflexão é ortogonal, preferi calcular a reflexão da visão em n e então o cosseno com a direção da luz
-            Vector3 reflected = 2 * normal * normal.dot(-v) +v;
+            Vector3 reflected = reflection_vector(-v, normal);
 
             for (auto l : lights) {
                 Vector3 light_direction = (l.position - hit_point).normalized();
@@ -116,17 +116,46 @@ class Camera {
                 if (cos_alpha <= 0) continue;
                 
                 cos_alpha = pow(cos_alpha, material->ns);
-                //Especular
+                // Especular
                 color += (l.color * material->specular) * cos_alpha;
             }
             color += ambient_light * material->ambient;
+            color *= material->opacity;
             if (!(material->specular == BLACK) && recursions > 0) {
-                //std::clog << normal <<"\n";
-                hit_point += (normal * epsilon);
-                color += material->specular * get_color(objects, hit_point, reflected, recursions-1);
+                // std::clog << normal <<"\n";
+                //hit_point += (normal * epsilon);
+                color += material->specular * get_color(objects, hit_point + normal * epsilon, reflected, recursions-1);
+            }
+            
+            if (material->opacity < 1) {
+                //std::clog << "opacity: " << material->opacity << "\n";
+                Vector3 N = normal;
+                double n_it;
+                if (N.dot(v) < 0) {
+                    n_it = 1.0/material->ni;
+                } else {
+                    n_it = material->ni;
+                    N = -N;
+                }
+                Vector3 refracted = refraction_vector(-v, N, n_it);
+                color += std::max(0.0, 1 - material->opacity) * get_color(objects, hit_point - epsilon * N, refracted, recursions-1);
             }
             return color;
-        } 
+        }
+        inline const Vector3 refraction_vector(const Vector3 &I, Vector3 &N, double n_it) const {
+            const double &cos_i = N.dot(I);
+            const double &sqrsin_i = 1 - cos_i*cos_i;
+            const double &k = 1 - (n_it*n_it) * sqrsin_i;
+
+            if (k < 0) {
+                return reflection_vector(I, N);
+            }
+            return (n_it*(cos_i) - sqrt(k))*N + n_it*I;
+        }
+        inline const Vector3 reflection_vector(const Vector3 &I, const Vector3 &N) const {
+            return 2 * N * N.dot(I) - I;
+        }
 };
+
 
 #endif

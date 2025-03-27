@@ -15,21 +15,24 @@ int main() {
     madeira.ns = 10;
 
     Object::Material meuMat;
-    meuMat.diffuse = Color(0.9, 0.9, 0.9);
+    meuMat.diffuse = Color(0, 0, 0);
     meuMat.specular = Color(0.5, 0.5, 0.5);
-    meuMat.ns = 10;
+    meuMat.ns = 100;
+    meuMat.opacity = 0.5;
+    meuMat.ni = 1.5;
     
     Plane plano(Vector3(0, 0, 0), Vector3(0, 1, 0));
-    plano.material = &madeira;
+    plano.material = &marrom;
     
     Sphere esfera(Vector3(6, 2, 0), 2);
     esfera.material = &meuMat;
     
     Vector3
         cam_pos(-2, 3, 0),
-        target(6, 2, 0);
+        target(6, 1.5, 0);
 
     Camera cam(cam_pos, target);
+    //cam.screen_distance = 2; //zoom
     cam.lights.emplace_back(Vector3(0, 8, -5));
     //cam.lights.emplace_back(Vector3(0, 8, 5));
     cam.lights[0].color = Color(1, 1, 1);
@@ -37,7 +40,7 @@ int main() {
     cam.ambient_light = Color(0.1, 0.1, 0.4);
 
     //cam.light_sources.emplace_back(0, 5, 0);
-    //TriangleMesh mesh("inputs/icosahedron.obj");
+    TriangleMesh mesh("inputs/icosahedron.obj");
     
     // Vector3 a(0, 1, 1);
     // Vector3 b(1, 2, 2);
@@ -47,7 +50,7 @@ int main() {
     // tri.material = &branco;
 
     objs.push_back(&plano);
-    objs.push_back(&esfera);
+    objs.push_back(&mesh);
     //cout << mesh;
     cam.draw(objs);
 }

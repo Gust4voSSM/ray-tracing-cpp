@@ -19,9 +19,9 @@ public:
         specular = Color (0.0, 0.0, 0.0),
         ambient  = Color (0.1, 0.1, 0.1),
         emissive = Color (0.0, 0.0, 0.0);
-        double opacity  = 1,
-        ni       = 0.5,
-        ns       = 10;
+        double  opacity  = 1,
+                ni       = 1,
+                ns       = 10;
     } *material;
     
     struct Intersection {

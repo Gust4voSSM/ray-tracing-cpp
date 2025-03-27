@@ -37,7 +37,7 @@ class Vector3 {
         inline double sqr_lenght() const { return X*X + Y*Y + Z*Z; }
         inline Vector3 normalized();
         inline Vector3 cross(const Vector3 &other);
-        inline double dot(const Vector3 &other);
+        inline const double dot(const Vector3 &other) const;
 
 };
 
@@ -51,7 +51,7 @@ inline Vector3 Vector3::cross(const Vector3 &other) {
                     this->x() * other.y() - this->y() * other.x() );
 }
 
-inline double Vector3::dot(const Vector3 &other) {
+inline const double Vector3::dot(const Vector3 &other) const{
     return  this->x() * other.x() +
             this->y() * other.y() +
             this->z() * other.z();

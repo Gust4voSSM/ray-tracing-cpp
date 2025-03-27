@@ -110,6 +110,10 @@ class TriangleMesh: public Object {
             inFile.close();
         }
 
+        std::string to_string() {
+            return "triangle mesh";
+        }
+
         Vector3 get_normal(const Vector3 &p) {
             std::cerr << "Error: Normal for mesh not implemented\n";
             return Vector3();
