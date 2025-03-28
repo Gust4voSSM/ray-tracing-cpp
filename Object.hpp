@@ -114,15 +114,15 @@ class Triangle: public Object {
             v[0] = v0;
             v[1] = v1;
             v[2] = v2;
-            normal = (*v[1] - *v[0]).cross(*v[2] - *v[0]).normalized();
         }
-        Vector3 get_normal(const Vector3 &p) { return normal; }
+        Vector3 get_normal() {return (*v[1] - *v[0]).cross(*v[2] - *v[0]).normalized();}
+        Vector3 get_normal(const Vector3 &p) { return get_normal(); }
         Intersection raycast(Vector3 origin, Vector3 direction) {
-            double dist = Plane(*v[0], normal).raycast(origin, direction).distance;
+            double dist = Plane(*v[0], get_normal()).raycast(origin, direction).distance;
             if (dist < 0) return INFINITY;
             Vector3 P = origin + (direction * dist);
             const Vector3 &A = *v[0], &B = *v[1], &C = *v[2];
-
+            
             Vector3
                 AB = *v[1] - *v[0],
                 AC = *v[2] - *v[0],
