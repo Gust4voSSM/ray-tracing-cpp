@@ -110,6 +110,62 @@ class TriangleMesh: public Object {
             inFile.close();
         }
 
+        void translate(const Vector3& t) {
+            for (auto& v : vertices) {
+                v += t;
+            }
+        }
+    
+        void scale(double s) {
+            Vector3 centroid = computeCentroid();
+            translate(-centroid);
+            for (auto& v : vertices) {
+                v *= s;
+            }
+            translate(centroid);
+        }
+    
+        void rotateX(double angle) {
+            Vector3 centroid = computeCentroid();
+            translate(-centroid);
+            double cosA = cos(angle);
+            double sinA = sin(angle);
+            for (auto& v : vertices) {
+                double y = v.y() * cosA - v.z() * sinA;
+                double z = v.y() * sinA + v.z() * cosA;
+                v[1] = y;
+                v[2] = z;
+            }
+            translate(centroid);
+        }
+    
+        void rotateY(double angle) {
+            Vector3 centroid = computeCentroid();
+            translate(-centroid);
+            double cosA = cos(angle);
+            double sinA = sin(angle);
+            for (auto& v : vertices) {
+                double x = v.x() * cosA + v.z() * sinA;
+                double z = -v.x() * sinA + v.z() * cosA;
+                v[0] = x;
+                v[2] = z;
+            }
+            translate(centroid);
+        }
+    
+        void rotateZ(double angle) {
+            Vector3 centroid = computeCentroid();
+            translate(-centroid);
+            double cosA = cos(angle);
+            double sinA = sin(angle);
+            for (auto& v : vertices) {
+                double x = v.x() * cosA - v.y() * sinA;
+                double y = v.x() * sinA + v.y() * cosA;
+                v[0] = x;
+                v[1] = y;
+            }
+            translate(centroid);
+        }        
         std::string to_string() {
             return "triangle mesh";
         }
@@ -131,6 +187,15 @@ class TriangleMesh: public Object {
                 }
             }
             return Intersection(min_dist, hit);
+        }
+
+    private:
+        Vector3 computeCentroid() {
+            Vector3 sum(0, 0, 0);
+            for (const auto& v : vertices) {
+                sum += v;
+            }
+            return sum / vertices.size();
         }
 };
 
