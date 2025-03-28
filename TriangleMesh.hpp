@@ -175,12 +175,14 @@ class TriangleMesh: public Object {
             return Vector3();
         }
         Intersection raycast(Vector3 p, Vector3 v) {
+            //Sphere bounding_sphere = Sphere(computeCentroid(), 2);
+            //if (bounding_sphere.raycast(p, v).distance == INFINITY) return INFINITY;
             double min_dist = INFINITY;
             Object* hit;
             for (Triangle &t : triangles) {
                 Intersection try_hit = t.raycast(p, v);
                 double dist = try_hit.distance;
-                if (dist < min_dist) {
+                if (dist < min_dist && dist > epsilon) {
                     this->material = t.material;
                     min_dist = dist;
                     hit = try_hit.object;
