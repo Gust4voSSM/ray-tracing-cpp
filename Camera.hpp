@@ -127,7 +127,7 @@ class Camera {
                 color += material->specular * get_color(objects, hit_point + normal * epsilon, reflected, recursions-1);
             }
             
-            if (material->opacity < 1) {
+            if (material->opacity < 1 && recursions > 0) {
                 //std::clog << "opacity: " << material->opacity << "\n";
                 Vector3 N = normal;
                 double n_it;
