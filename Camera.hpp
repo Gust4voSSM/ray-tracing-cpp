@@ -62,7 +62,7 @@ class Camera {
             for (int i = screen_height-1; i >= 0; i--) {
                 for (int j = 0; j < screen_width; j++) {
                     Vector3 ray_direction = (screen_to_world(i, j) - position).normalized();
-                    Color pixel_color = get_color(objects, position, ray_direction, 5);
+                    Color pixel_color = get_color(objects, position, ray_direction, 2);
                     unsigned char
                         r = static_cast<unsigned char>(std::min(255.0, pixel_color.r() * 255.99)),
                         g = static_cast<unsigned char>(std::min(255.0, pixel_color.g() * 255.99)),
@@ -85,7 +85,6 @@ class Camera {
                 }
             }
             if (min_dist == INFINITY) return color;
-            v = v.normalized();
             Vector3 hit_point = p + v*min_dist;
             normal = hit_obj->get_normal(hit_point);
             Object::Material *material = hit_obj->material;
@@ -98,7 +97,7 @@ class Camera {
                 bool blocked = false;
                 for (Object* o : objects) {
                     if (hit_obj == o) continue;
-                    Object::Intersection obst = o->raycast(hit_point, light_direction);
+                    Object::Intersection obst = o->raycast(hit_point + normal*epsilon, light_direction);
                     double distance = obst.distance;
                     if(distance != INFINITY && distance > epsilon) {
                         blocked = true;
