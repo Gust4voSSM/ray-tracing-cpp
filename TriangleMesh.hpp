@@ -152,6 +152,49 @@ class TriangleMesh: public Object {
             }
             translate(centroid);
         }
+
+        void rotate(double angleX, double angleY, double angleZ) {
+            Vector3 centroid = computeCentroid();
+            translate(-centroid);
+            
+            double cosX = cos(angleX), sinX = sin(angleX);
+            double cosY = cos(angleY), sinY = sin(angleY);
+            double cosZ = cos(angleZ), sinZ = sin(angleZ);
+            
+            for (auto& v : vertices) {
+                double x = v.x(), y = v.y(), z = v.z();
+                
+                // Rotação em X
+                if (angleX != 0) {
+                    double newY = y * cosX - z * sinX;
+                    double newZ = y * sinX + z * cosX;
+                    y = newY;
+                    z = newZ;
+                }
+                
+                // Rotação em Y
+                if (angleY != 0) {
+                    double newX = x * cosY + z * sinY;
+                    double newZ = -x * sinY + z * cosY;
+                    x = newX;
+                    z = newZ;
+                }
+                
+                // Rotação em Z
+                if (angleZ != 0) {
+                    double newX = x * cosZ - y * sinZ;
+                    double newY = x * sinZ + y * cosZ;
+                    x = newX;
+                    y = newY;
+                }
+                
+                v[0] = x;
+                v[1] = y;
+                v[2] = z;
+            }
+            
+            translate(centroid);
+        }
     
         void rotateZ(double angle) {
             Vector3 centroid = computeCentroid();
