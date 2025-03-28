@@ -108,7 +108,7 @@ inline Vector3& Vector3::operator-=(const Vector3 &other) {
 }
 
 inline Vector3& Vector3::operator*=(const double k) {
-    Z *= k;
+    X *= k;
     Y *= k;
     Z *= k;
     return *this;
