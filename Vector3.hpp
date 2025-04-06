@@ -17,9 +17,15 @@ class Vector3 {
             Y = e1;
             Z = e2;
         }
-        inline double x() const {return X; }
-        inline double y() const {return Y; }
-        inline double z() const {return Z; }
+
+        inline double &x() {return e[0]; }
+        inline double &y() {return e[1]; }
+        inline double &z() {return e[2]; }
+
+
+        inline double x() const {return e[0]; }
+        inline double y() const {return e[1]; }
+        inline double z() const {return e[2]; }
 
         inline const Vector3& operator +() const { return *this; }
         inline const Vector3 operator -() const { return Vector3(-X, -Y, -Z); }
@@ -31,6 +37,7 @@ class Vector3 {
             &operator +=(const Vector3 &other),
             &operator -=(const Vector3 &other),
             &operator *=(const double k),
+            &operator *=(Vector3 v),
             &operator /=(const double k);
     
         inline double length() const { return sqrt(X*X + Y*Y + Z*Z) ; }
@@ -38,7 +45,6 @@ class Vector3 {
         inline Vector3 normalized();
         inline Vector3 cross(const Vector3 &other);
         inline const double dot(const Vector3 &other) const;
-
 };
 
 inline bool operator ==(Vector3 u, Vector3 v) {
@@ -114,6 +120,13 @@ inline Vector3& Vector3::operator*=(const double k) {
     return *this;
 }
 
+inline Vector3& Vector3::operator*=(Vector3 v) {
+    X *= v.X;
+    Y *= v.Y;
+    Z *= v.Z;
+    return *this;
+}
+
 inline Vector3& Vector3::operator/=(const double k) {
     Z /= k;
     Y /= k;
@@ -129,6 +142,18 @@ inline std::istream& operator>>(std::istream &is, Vector3 &v) {
 inline std::ostream& operator<<(std::ostream &os, const Vector3 &v) {
     os << v.X << " " << v.Y << " " << v.Z;
     return os;
+}
+
+inline Vector3 max(Vector3 v1, Vector3 v2) {
+    return Vector3 (std::max(v1.x(), v2.x()),
+                    std::max(v1.y(), v2.y()),
+                    std::max(v1.z(), v2.z()));
+}
+
+inline Vector3 min(Vector3 v1, Vector3 v2) {
+    return Vector3 (std::min(v1.x(), v2.x()),
+                    std::min(v1.y(), v2.y()),
+                    std::min(v1.z(), v2.z()));
 }
 
 #undef X

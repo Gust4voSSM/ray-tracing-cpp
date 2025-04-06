@@ -9,52 +9,56 @@
 const double epsilon = 1.0E-6;
 
 class Object {
-
+friend class Camera;
+private:
+    virtual void apply_transformations() = 0;
 public:
-    Object() : material(default_material) {}
+    Object() {}
     virtual ~Object() {}
-    
+    Vector3 position;
+    Vector3 rotation;
+    Vector3 scale = Vector3(1.0, 1.0, 1.0);
+
     struct Material {
         Color  diffuse  = Color (1.0, 1.0, 1.0),
         specular = Color (0.0, 0.0, 0.0),
         ambient  = Color (0.1, 0.1, 0.1),
         emissive = Color (0.0, 0.0, 0.0);
         double  opacity  = 1,
-                ni       = 1,
-                ns       = 10;
-    } *material;
+        ni       = 1,
+        ns       = 10;
+    };
+    static Material *default_material;
     
     struct Intersection {
         double distance;
-        Object *object;
-        Intersection(double d): distance {d},  object {nullptr} {};
-        Intersection(double d, Object *o): distance {d}, object {o} {};
+        Material* material;
+        Vector3 normal;
+        Intersection(double d): distance {d} {};
+        Intersection(double d, Material *m, Vector3 normal): distance {d}, material {m} , normal{normal} {};
     };
     virtual Intersection raycast(Vector3 p, Vector3 v) = 0;
-    virtual Vector3 get_normal(const Vector3 &p) = 0;
     virtual std::string to_string() = 0;
-    
-    static Material *default_material;
-
-    //void rotate(Vector3 v) { rotate(v.x(), v.y(), v.z()); }
-    //virtual void rotate(double x, double y, double z) = 0;
-    //void translate(Vector3 v) { translate(v.x(), v.y(), v.z()); }
-    //virtual void translate(double x, double y, double z) = 0;
-
 };
 
 Object::Material* Object::default_material = new Object::Material();
 
 class Plane: public Object {
-
-public:
-    Plane(Vector3 point, Vector3 normal): point {point}, normal {normal.normalized()} {}
-    Vector3 normal;
+friend class Triangle;
+private:
     Vector3 point;
+    Vector3 normal;
+    // Acessado por Triangle
+    Plane(Vector3 point, Vector3 normal): point {point}, normal {normal.normalized()}, material {default_material} {}
+public:
+    Plane(Vector3 normal): normal {normal.normalized()}, material {default_material} {}
+    Material* material;
     std::string to_string() {
         return "Plano de normal (" + std::to_string(normal.x()) +", "+ std::to_string(normal.y()) +", "+ std::to_string(normal.z())+")";
-        }
-
+    }
+    void apply_transformations() {
+        point = position;
+    }
     Vector3 get_normal(const Vector3 &p) { return normal; }
     Intersection raycast(Vector3 p, Vector3 v) {
 
@@ -66,19 +70,28 @@ public:
         
         double distance = (point - p).dot(normal) / sin;
 
-        return (distance >= 0)? Intersection(distance, this) : INFINITY;
+        return (distance >= 0)? Intersection(distance, this->material, normal) : INFINITY;
     }
 };
 
 class Sphere: public Object {
-
+friend class TriangleMesh;
+private:
+    Vector3 center;
+    // Acessado por TriangleMesh
+    Sphere(Vector3 center, double radius): center {center}, radius {radius} {};
 public:
-    Sphere() {}
-    Sphere(Vector3 center, double radius): center {center}, radius {radius} {}
+    double radius = 0.5;
+    Material* material;
+    Sphere() : material {default_material} {}
+    Sphere(double radius): radius {radius} {}
     Vector3 get_normal(const Vector3 &p) { return (p - center).normalized(); }
     std::string to_string() {
         return "Esfera de centro (" + std::to_string(center.x()) +", "+ std::to_string(center.y()) +", "+ std::to_string(center.z())+")";
         }
+    void apply_transformations() {
+        center = position;
+    }
     Intersection raycast(Vector3 p, Vector3 v) {
         Vector3 d = center - p;
         
@@ -100,20 +113,24 @@ public:
 
         //std::cerr << "Interseção!\n";
 
-        return  (d_1 > 0)? Intersection(d_1, this) :
-                (d_2 > 0)? Intersection(d_2, this) : INFINITY;
-
+        return  (d_1 > 0)? Intersection(d_1, this->material, get_normal(p + v*d_1)) :
+        (d_2 > 0)? Intersection(d_2, this->material, get_normal(p + v*d_2)) : INFINITY;
+        
     }
-    Vector3 center;
-    double radius;
 };
 
 class Triangle: public Object {
     public:
+        Material* material;
+        Vector3* v[3];
+        Vector3 normal;
         Triangle(Vector3* v0, Vector3* v1, Vector3* v2) {
             v[0] = v0;
             v[1] = v1;
             v[2] = v2;
+        }
+        void apply_transformations() {
+            return;
         }
         Vector3 get_normal() {return (*v[1] - *v[0]).cross(*v[2] - *v[0]).normalized();}
         Vector3 get_normal(const Vector3 &p) { return get_normal(); }
@@ -139,12 +156,9 @@ class Triangle: public Object {
             b = (AB.dot(AB) * AP.dot(AC) - AB.dot(AC) * AP.dot(AB)) / denom;
             c = 1 - b - a;
 
-
-            if (a >= 0 && b >= 0 && c > 0 && a < 1 && b < 1 && c < 1) return Intersection(dist, this);
+            if (a >= 0 && b >= 0 && c > 0 && a < 1 && b < 1 && c < 1) return Intersection(dist, this->material, get_normal());
             return INFINITY;
         }
-        Vector3* v[3];
-        Vector3 normal;
         std::string to_string() {return "Triangle"; }
 
 };

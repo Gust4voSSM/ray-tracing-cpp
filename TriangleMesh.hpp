@@ -109,25 +109,50 @@ class TriangleMesh: public Object {
             }
             inFile.close();
         }
+        
+        std::string to_string() {
+            return "triangle mesh";
+        }
+
+        Vector3 get_normal(const Vector3 &p) {
+            std::cerr << "Error: Normal for mesh not implemented\n";
+            return Vector3();
+        }
+        Intersection raycast(Vector3 p, Vector3 v) {
+            Sphere bounding_sphere = Sphere(position, (scale).length()/2);      
+            if (bounding_sphere.raycast(p, v).distance == INFINITY) return INFINITY;
+            double min_dist = INFINITY;
+            Vector3 n;
+            Material *mat;
+            for (Triangle &t : triangles) {
+                Intersection try_hit = t.raycast(p, v);
+                double dist = try_hit.distance;
+                if (dist < min_dist && dist > epsilon) {
+                    mat = t.material;
+                    min_dist = dist;
+                    n = t.get_normal();
+                }
+            }
+            return Intersection(min_dist, mat, n);
+        }
+
+    private:
+
+        // Operadores LINEARES (requer mesh na origem)
 
         void translate(const Vector3& t) {
             for (auto& v : vertices) {
                 v += t;
             }
         }
-    
-        void scale(double s) {
-            Vector3 centroid = computeCentroid();
-            translate(-centroid);
+
+        void apply_scale(Vector3 s) {
             for (auto& v : vertices) {
                 v *= s;
             }
-            translate(centroid);
         }
-    
+
         void rotateX(double angle) {
-            Vector3 centroid = computeCentroid();
-            translate(-centroid);
             double cosA = cos(angle);
             double sinA = sin(angle);
             for (auto& v : vertices) {
@@ -136,12 +161,9 @@ class TriangleMesh: public Object {
                 v[1] = y;
                 v[2] = z;
             }
-            translate(centroid);
         }
-    
+
         void rotateY(double angle) {
-            Vector3 centroid = computeCentroid();
-            translate(-centroid);
             double cosA = cos(angle);
             double sinA = sin(angle);
             for (auto& v : vertices) {
@@ -150,13 +172,12 @@ class TriangleMesh: public Object {
                 v[0] = x;
                 v[2] = z;
             }
-            translate(centroid);
         }
 
+        void rotate(Vector3 v) {
+            return rotate(v.x(), v.y(), v.z());
+        }
         void rotate(double angleX, double angleY, double angleZ) {
-            Vector3 centroid = computeCentroid();
-            translate(-centroid);
-            
             double cosX = cos(angleX), sinX = sin(angleX);
             double cosY = cos(angleY), sinY = sin(angleY);
             double cosZ = cos(angleZ), sinZ = sin(angleZ);
@@ -192,13 +213,9 @@ class TriangleMesh: public Object {
                 v[1] = y;
                 v[2] = z;
             }
-            
-            translate(centroid);
         }
-    
+
         void rotateZ(double angle) {
-            Vector3 centroid = computeCentroid();
-            translate(-centroid);
             double cosA = cos(angle);
             double sinA = sin(angle);
             for (auto& v : vertices) {
@@ -207,40 +224,30 @@ class TriangleMesh: public Object {
                 v[0] = x;
                 v[1] = y;
             }
-            translate(centroid);
-        }        
-        std::string to_string() {
-            return "triangle mesh";
         }
 
-        Vector3 get_normal(const Vector3 &p) {
-            std::cerr << "Error: Normal for mesh not implemented\n";
-            return Vector3();
-        }
-        Intersection raycast(Vector3 p, Vector3 v) {
-            //Sphere bounding_sphere = Sphere(computeCentroid(), 2);
-            //if (bounding_sphere.raycast(p, v).distance == INFINITY) return INFINITY;
-            double min_dist = INFINITY;
-            Object* hit;
-            for (Triangle &t : triangles) {
-                Intersection try_hit = t.raycast(p, v);
-                double dist = try_hit.distance;
-                if (dist < min_dist && dist > epsilon) {
-                    this->material = t.material;
-                    min_dist = dist;
-                    hit = try_hit.object;
-                }
-            }
-            return Intersection(min_dist, hit);
-        }
-
-    private:
-        Vector3 computeCentroid() {
-            Vector3 sum(0, 0, 0);
+        // Ponto Medio
+        struct Bounds {Vector3 max, min;};
+        Bounds computeBounds() {
+            Bounds b;
+            b.min = Vector3(INFINITY, INFINITY, INFINITY);
             for (const auto& v : vertices) {
-                sum += v;
+                b.max = max(b.max, v);
+                b.min = min(b.min, v);
             }
-            return sum / vertices.size();
+            return b;
+        }
+
+        // Transformação Afim
+        void apply_transformations() {
+            auto [max, min] = computeBounds();
+            Vector3 c = (max + min) / 2;
+            double size = (max - min).length();
+            translate(-c);
+            Vector3 radians = rotation * (180.0/3.141592653589793238463);
+            rotate(radians);
+            apply_scale(scale/size);
+            translate(position);
         }
 };
 

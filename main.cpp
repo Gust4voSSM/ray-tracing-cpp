@@ -1,57 +1,63 @@
 #include <iostream>
 #include "Raytracing.hpp"
+#include "Scene.hpp"
 using namespace std;
 
-int main() {
-    vector<Object*> objs;
-    
+int main() {    
     Object::Material marrom, branco, madeira;
     marrom.diffuse = Color(0.6, 0.3, 0);
     marrom.ambient = Color(0.1, 0.05, 0);
-    
     
     madeira.diffuse = Color(0.5, 0.25, 0);
     madeira.specular = Color(0.9, 0.9, 0.9);
     madeira.ns = 10;
 
-    Object::Material meuMat;
-    meuMat.diffuse = Color(0, 0, 0);
-    meuMat.specular = Color(0.5, 0.5, 0.5);
-    meuMat.ns = 100;
-    meuMat.opacity = 0.5;
-    meuMat.ni = 1.5;
+    Object::Material reflexivo;
+    reflexivo.diffuse = Color(0, 0, 0);
+    reflexivo.specular = Color(0.5, 0.5, 0.5);
+    reflexivo.ns = 100;
+    reflexivo.opacity = 0.5;
+    reflexivo.ni = 1.5;
     
-    Plane plano(Vector3(0, 0, 0), Vector3(0, 1, 0));
-    plano.material = &marrom;
+    Plane plano(Vector3(0, 1, 0));
+    plano.material = &madeira;
     
-    Sphere esfera(Vector3(6, 2, 0), 2);
-    esfera.material = &meuMat;
-    
-    Vector3
+    // Cena esfera
+    Vector3 
         cam_pos(-2, 3, 0),
         target(6, 1.5, 0);
+    Camera sphereCam(cam_pos, target);
+    Scene sphereScene;
+        Sphere esfera(2);
+        esfera.position = Vector3(6, 1.5, 0);
+        esfera.material = &reflexivo;
+        sphereScene.objects.push_back(&plano);
+        sphereScene.objects.push_back(&esfera);
+        sphereScene.lights.emplace_back(Vector3(0, 8, -5));
 
-    Camera cam(cam_pos, target);
-    //cam.screen_distance = 2; //zoom
-    cam.lights.emplace_back(Vector3(0, 8, -5));
-    //cam.lights.emplace_back(Vector3(0, 8, 5));
-    cam.lights[0].color = Color(1, 1, 1);
-    //cam.lights[1].color = Color(0.3, 0.3, 0.3);
-    cam.ambient_light = Color(0.1, 0.1, 0.4);
+    // Cena icosaedro
+    cam_pos = Vector3(-2, 3, 0);
+    target = Vector3(6, 1.5, 0);
+    Camera icosCam(cam_pos, target);
+    Scene icosScene;
+        TriangleMesh ico("inputs/icosahedron.obj");
+        icosScene.lights.emplace_back(Vector3(0, 8, 5));
+        icosScene.objects.push_back(&plano);
+        icosScene.objects.push_back(&ico);
 
-    //cam.light_sources.emplace_back(0, 5, 0);
-    TriangleMesh mesh("inputs/icosahedron.obj");
-    
-    // Vector3 a(0, 1, 1);
-    // Vector3 b(1, 2, 2);
-    // Vector3 c(-1, 2, 2);
+    // Cena macaco
+    cam_pos = Vector3(-2, 3, 0);
+    target = Vector3(6, 3, 0);
+    Camera macacoCam(cam_pos, target);
+    Scene macacoScene;
+        TriangleMesh macaco("inputs/macaco.obj");
+        macaco.position = Vector3(3, 3, 0);
+        macaco.scale = Vector3(6, 6, 6);
+        macaco.rotation.y() = 90;
+        macacoScene.lights.emplace_back(Vector3(0, 8, 5));
+        macacoScene.objects.push_back(&plano);
+        macacoScene.objects.push_back(&macaco);
 
-    // Triangle tri = Triangle(&a, &b, &c);
-    // tri.material = &branco;
-
-    objs.push_back(&plano);
-    objs.push_back(&mesh);
-    //cout << mesh;
-    cam.draw(objs);
+    macacoCam.draw(macacoScene);
 }
 
